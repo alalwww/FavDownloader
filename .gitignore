@@ -1,0 +1,15 @@
+.gradle/
+.settings/
+bin/
+build/
+logs/
+
+.project
+.classpath
+.checkstyle
+
+*.class
+*.jpage
+
+gradle.properties
+version.properties

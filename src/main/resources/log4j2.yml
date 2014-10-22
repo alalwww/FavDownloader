@@ -1,0 +1,50 @@
+#
+# FavDownloader
+#
+# (c) 2014 alalwww
+# https://github.com/alalwww
+#
+# This software is released under the MIT License.
+# http://opensource.org/licenses/mit-license.php
+#
+#####################################################
+
+Configuration:
+  status: warn
+
+  Appenders:
+    Console:
+      name: STDOUT
+      target: SYSTEM_OUT
+      PatternLayout:
+        pattern: "%d{HH:mm:ss.SSS} [%-5level] (%t) : %msg (%C:%L)%n"
+
+    File:
+      name: File
+      fileName: logs/FavDownloader.log
+      append: false
+      PatternLayout:
+        pattern: "%d{yyyy/MM/dd HH:mm:ss.SSS} [%-5level] %msg (%logger)%n"
+
+  Loggers:
+    Logger:
+      -
+        name: net.awairo
+        level: debug
+        additivity: false
+        AppenderRef:
+          - ref: File
+          - ref: STDOUT
+
+#      -
+#        name: net.awairo.common.javafx.ServiceBase
+#        level: trace
+#        additivity: false
+#        AppenderRef:
+#          - ref: File
+#          - ref: STDOUT
+
+    Root:
+      level: info
+      AppenderRef:
+        ref: STDOUT

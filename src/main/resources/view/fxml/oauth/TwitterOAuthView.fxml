@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane id="root" prefHeight="220.0" prefWidth="300.0" stylesheets="@../../application.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.awairo.favdler.oauth.TwitterOAuthView">
+	<children>
+		<Label layoutX="15.0" layoutY="14.0" prefHeight="76.0" prefWidth="271.0" text="%label.twitter_oauth" wrapText="true" />
+		<StackPane layoutX="39.0" layoutY="100.0" prefHeight="70.0" prefWidth="223.0">
+			<children>
+				<Button id="oauth-button" fx:id="oauthButton" defaultButton="true" mnemonicParsing="false" onAction="#oauthButton_onAction" prefHeight="50.0" prefWidth="200.0" text="%button.start_twitter_oauth" textAlignment="CENTER">
+					<graphic>
+						<ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true" />
+					</graphic>
+					<font>
+						<Font name="System Bold" size="15.0" />
+					</font>
+				</Button>
+				<Button id="oauth-cancel-button" fx:id="cancelButton" cancelButton="true" disable="true" mnemonicParsing="false" onAction="#cancelButton_onAction" prefHeight="50.0" prefWidth="200.0" text="%button.cancel_twitter_oauth" visible="false" />
+			</children>
+		</StackPane>
+	</children>
+</AnchorPane>

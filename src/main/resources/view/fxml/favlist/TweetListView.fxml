@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.effect.*?>
+<?import java.lang.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.BorderPane?>
+
+<SplitPane id="root" fx:id="divider" dividerPositions="0.24310776942355888" maxHeight="1.7976931348623157E308" maxWidth="500.0" minHeight="500.0" minWidth="500.0" orientation="VERTICAL" prefHeight="800.0" prefWidth="500.0" stylesheets="@../../application.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.awairo.favdler.favlist.TweetListView">
+	<items>
+		<AnchorPane id="conditionPane" maxHeight="80.0" minHeight="80.0" prefHeight="80.0" prefWidth="498.0">
+			<children>
+            <HBox alignment="CENTER_LEFT" spacing="5.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <children>
+      				<TextField fx:id="screenName" prefHeight="30.0" prefWidth="180.0" promptText="\@screen name">
+      					<tooltip>
+      						<Tooltip text="%screenname_textfield.tooltip" />
+      					</tooltip>
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
+      				</TextField>
+                  <Group>
+                     <children>
+            				<Button id="reload-button" fx:id="reloadFavorites" maxHeight="28.0" maxWidth="28.0" mnemonicParsing="false" onAction="#reloadFavorites_onAction" prefHeight="28.0" prefWidth="28.0">
+            					<padding>
+            						<Insets bottom="-2.0" left="-2.0" right="-2.0" top="-2.0" />
+            					</padding>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+            				</Button>
+            				<SVGPath id="reload-button-icon" cache="true" content="M92.683,10.256C43.198,10.256,3.045,50.515,3.045,100S43,189.744,93,189.744v-30c-33,0-59.955-26.801-59.955-59.744s26.589-59.744,59.532-59.744c32.272,0,58.632,25.725,59.693,57.744h-14.783l29.673,41.68L196.833,98h-14.538C181.231,49.435,141.499,10.256,92.683,10.256z" fill="#02bde8" focusTraversable="true" mouseTransparent="true" stroke="#02c3ee">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </SVGPath>
+                     </children>
+                  </Group>
+               </children>
+            </HBox>
+            <HBox alignment="CENTER_RIGHT" layoutX="50.0" layoutY="38.0" spacing="2.0" styleClass="download-dir-selector" AnchorPane.bottomAnchor="3.0" AnchorPane.leftAnchor="0.0">
+               <children>
+                  <TextField fx:id="downloadDirectoryPath" editable="false" prefHeight="30.0" prefWidth="394.0" text="file://C:\">
+                     <padding>
+                        <Insets left="35.0" />
+                     </padding>
+                     <font>
+                        <Font size="13.0" />
+                     </font></TextField>
+                  <Button fx:id="folderSelectButton" mnemonicParsing="false" onAction="#folderSelect_onAction" prefHeight="30.0" styleClass="download-select-button" text="%label.select" translateX="1.0" />
+               </children>
+            </HBox>
+            <SVGPath content="M566.1,209.952c10.608,0,19.788,3.876,27.54,11.628s11.628,16.932,11.628,27.54v347.004c0,11.016-3.876,20.4-11.628,28.152s-16.932,11.628-27.54,11.628H48.348c-11.016,0-20.4-3.876-28.152-11.628c-7.752-7.752-11.628-17.138-11.628-28.152V249.12c0-10.608,3.876-19.788,11.628-27.54c7.752-7.752,17.136-11.628,28.152-11.628h42.228l36.108-45.288c4.896-5.712,10.812-8.568,17.748-8.568h104.652c9.384,0,16.116,4.488,20.196,13.464c2.04,2.856,6.222,8.16,12.546,15.912c6.324,7.752,13.158,15.912,20.502,24.48H566.1L566.1,209.952z" fill="#e1a83e" layoutX="-289.0" layoutY="-585.0" styleClass="folder-icon" />
+            <Group layoutX="340.0" layoutY="3.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <children>
+      				<Button fx:id="startDownload" mnemonicParsing="false" onAction="#startDownload_onAction" styleClass="download-all" text="%button.start_download">
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Button>
+               </children>
+            </Group>
+			</children>
+			<padding>
+				<Insets left="1.0" right="1.0" />
+			</padding>
+		</AnchorPane>
+		<AnchorPane id="listPane" fx:id="listPane" prefHeight="200.0">
+			<children>
+				<HBox prefHeight="18.0" prefWidth="498.0" spacing="1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+					<children>
+						<Label prefHeight="15.0" text="%label.api_limit" />
+						<Label text=":" />
+						<Label fx:id="apiLimit" text="15" textAlignment="RIGHT">
+							<padding>
+								<Insets left="5.0" right="5.0" />
+							</padding>
+						</Label>
+					</children>
+				</HBox>
+				<CheckBox fx:id="mediaOnly" layoutX="290.0" layoutY="20.0" mnemonicParsing="false" onAction="#mediaOnly_onAction" prefHeight="16.0" prefWidth="208.0" selected="true" text="%checkbox.filter_if_has_media" wrapText="true" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0" />
+				<ListView fx:id="list" layoutY="52.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0" />
+			</children>
+		</AnchorPane>
+	</items>
+</SplitPane>

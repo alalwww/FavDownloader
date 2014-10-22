@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="root" alignment="TOP_CENTER" prefHeight="150.0" prefWidth="300.0" stylesheets="@../../application.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.awairo.common.javafx.SimpleDialog">
+	<children>
+		<AnchorPane>
+			<children>
+				<Label fx:id="headline" layoutX="12.0" layoutY="14.0" prefHeight="27.0" prefWidth="277.0" text="headline" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="10.0">
+					<font>
+						<Font name="System Bold" size="18.0" />
+					</font>
+				</Label>
+				<Label fx:id="message" alignment="TOP_LEFT" layoutX="12.0" layoutY="44.0" prefHeight="97.0" prefWidth="277.0" text="message" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="40.0">
+					<padding>
+						<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+					</padding>
+				</Label>
+			</children>
+		</AnchorPane>
+      <ProgressBar fx:id="progress" prefWidth="200.0" progress="0.0" />
+		<HBox fx:id="yesno" alignment="CENTER" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+			<children>
+				<Button fx:id="yes" mnemonicParsing="false" text="%label.yes" />
+				<Button fx:id="no" mnemonicParsing="false" text="%label.no" />
+			</children>
+		</HBox>
+		<HBox fx:id="okcancel" alignment="CENTER" spacing="10.0">
+			<children>
+				<Button fx:id="ok" mnemonicParsing="false" text="%label.ok" />
+				<Button fx:id="cancel" mnemonicParsing="false" text="%label.cancel" />
+			</children>
+		</HBox>
+	</children>
+</VBox>

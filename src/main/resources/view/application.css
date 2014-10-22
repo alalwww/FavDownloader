@@ -1,0 +1,261 @@
+/*
+ * FavDownloader
+ *
+ * (c) 2014 alalwww
+ * https://github.com/alalwww
+ *
+ * This software is released under the MIT License.
+ * http://opensource.org/licenses/mit-license.php
+ */
+
+/**************************************
+ * common styles.
+ **************************************/
+* {
+	/*
+	 * サブピクセルレンダリングにすると一部のフォント(Labelとか)で日本語文字がにじむので。
+	 * システムデフォルトのフォントに依存してそう。フォントを選択できるようにしたら変更も考えよう・・・。
+	 */
+	-fx-font-smoothing-type: gray;
+}
+
+#root {
+	-fx-background-color: #303030;
+}
+
+/* Text Color
+ **********************/
+.label, .check-box {
+	-fx-text-fill: #FFFFFF;
+}
+
+/* Tooltip
+ **********************/
+.tooltip {
+	-fx-background-color: #606030;
+}
+
+/* Hyperlink
+ **********************/
+Hyperlink, Hyperlink:link, Hyperlink:visited {
+	-fx-text-fill: #C0C0FF;
+}
+Hyperlink:hover {
+	-fx-text-fill: #FFC0C0;
+}
+Hyperlink:active {
+	-fx-text-fill: #CFA0A0;
+}
+
+/* Button
+ **********************/
+.button {
+	-fx-border-color: #ffffff;
+	-fx-background-color: null;
+	-fx-text-fill: white;
+}
+.button:hover {
+	-fx-border-color: #006699;
+	-fx-background-color: #666666;
+}
+.button:pressed  {
+	-fx-border-color: #996600;
+	-fx-background-color: #cccc66;
+}
+.button:disabled {
+	-fx-border-color: #333333;
+}
+
+/* TextField
+ **********************/
+.text-field {
+	-fx-border-color: #ffffff;
+	-fx-background-color: null;
+	-fx-text-fill: white;
+}
+.text-field:focus {
+	-fx-background-color: #505050;
+}
+
+/* -------------------- */
+.no-border {
+	-fx-border-image-width: 0.0;
+}
+
+/**************************************
+ * scene: TwitterOAutView
+ **************************************/
+#oauth-button, #oauth-cancel-button {
+	-fx-border-image-source: url('images/button.png');
+	-fx-border-image-slice: 5.0 5.0 5.0 5.0 fill;
+	-fx-border-image-width: 5.0 5.0 5.0 5.0;
+	-fx-border-image-repeat: stretch;
+	-fx-border-color: null;
+	-fx-background-color: null;
+	-fx-text-fill: white;
+}
+#oauth-button:hover, #oauth-cancel-button:hover {
+	-fx-border-image-source: url('images/button_hover.png');
+}
+#oauth-button:pressed, #oauth-cancel-button:pressed {
+	-fx-border-image-source: url('images/button_pressed.png');
+}
+#oauth-button:disabled, #oauth-cancel-button:disabled {
+	-fx-border-image-source: url('images/button_disabled.png');
+}
+
+#oauth-button .image-view {
+	-fx-image: url('images/twitter_bird_blue.png');
+}
+
+/**************************************
+ * scene: TweetListView
+ **************************************/
+
+#reload-button {
+	-fx-border-image-source: none;
+	-fx-border-color: none;
+}
+
+#reload-button:hover {
+	-fx-background-color: #cccccc;
+}
+
+#reload-button-icon {
+	-fx-scale-x: 0.12;
+	-fx-scale-y: 0.12;
+	-fx-translate-x: -85.5px;
+	-fx-translate-y: -87.0px;
+}
+#reload-button-icon:hover {
+	-fx-effect: glow
+}
+
+#conditionPane, #listPane, #listPane .list_view {
+	-fx-background-color: #303030;
+}
+
+.download-all {
+	-fx-border-color: #ffa0a0;
+	-fx-pref-width: 200px;
+	-fx-pref-height: 40px;
+}
+
+.download-dir-selector {
+}
+
+.folder-icon {
+	-fx-scale-x: 0.045;
+	-fx-scale-y: 0.045;
+	-fx-translate-x: 0.0px;
+	-fx-translate-y: 250.0px;
+	-fx-fill: #e1a83e;
+}
+
+/*--------------------------
+ * TweetListView cell
+ *--------------------------*/
+
+.tweet {
+	-fx-background-color: #303030;
+}
+/* icon
+ **********************/
+.tweet .icon {
+}
+
+/* text
+ **********************/
+.tweet .hyperlink-label Text {
+	-fx-fill: #FFFFFF;
+}
+
+/* download button
+ **********************/
+.tweet .download-button {
+	-fx-border-image-source: none;
+	-fx-background-color: #303030;
+	-fx-border-color: #FFFFFF;
+	-fx-border-width: 0.5px;
+}
+
+.tweet .download-button:hover {
+	-fx-border-image-source: none;
+	-fx-background-color: #909090;
+}
+.tweet .download-button:pressed  {
+	-fx-border-image-source: none;
+	-fx-background-color: #9090C0;
+}
+
+.tweet .download-button-group {
+}
+
+.tweet .download-button-group .star {
+	-fx-fill: #ffd700;
+	-fx-opacity: 0.9;
+	-fx-scale-x: 0.5;
+	-fx-scale-y: 0.5;
+	-fx-translate-x: 0.0px;
+	-fx-translate-y: 0.0px;
+}
+.tweet .download-button-group .arrow {
+	-fx-fill: #303030;
+	-fx-scale-x: 1.0;
+	-fx-scale-y: 1.0;
+	-fx-translate-x: 0.0px;
+	-fx-translate-y: 0.0px;
+}
+
+/* twitter bird icon
+ **********************/
+.tweet .bird {
+	-fx-background-image: url('images/twitter_bird_gray.png');
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 16.0px 16.0px;
+}
+.tweet .bird:hover {
+	-fx-background-image: url('images/twitter_bird_blue.png');
+}
+
+/* reply button
+ **********************/
+.tweet .reply {
+	-fx-background-image: url('images/reply-sprite.png');
+	-fx-background-repeat: no-repeat;
+
+	-fx-background-position: 0.0px 0.6px;
+}
+.tweet .reply:hover {
+	-fx-background-position: -16.0px 0.3px !important;
+}
+/* favorite button
+ **********************/
+.tweet .favorite {
+	-fx-background-image: url('images/favorite-sprite.png');
+	-fx-background-repeat: no-repeat;
+
+	-fx-background-position: 0.0px 0.5px;
+}
+
+.tweet .favorite:hover {
+	-fx-background-position: -16.0px 0.2px !important;
+}
+.tweet .favorite-on {
+	-fx-background-position: -32.0px 0.5px !important;
+}
+
+/* retweet button
+ **********************/
+.tweet .retweet {
+	-fx-background-image: url('images/retweet-sprite.png');
+	-fx-background-repeat: no-repeat;
+
+	-fx-background-position: 0.0px 1.8px;
+}
+.tweet .retweet:hover {
+	-fx-background-position: -16.0px 1.5px !important;
+}
+.tweet .retweet-on {
+	-fx-background-position: -32.0px 1.8px !important;
+}

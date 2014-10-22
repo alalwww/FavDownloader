@@ -1,0 +1,297 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply from: 'gradle/plugins/one-jar.plugin'
+apply from: 'gradle/plugins/javafx.plugin'
+
+// load ext properties
+// -------------------------------------------------
+
+loadExtProperty name: 'jreVersion',
+        defaultValue: JavaVersion.VERSION_1_8
+
+loadExtProperty name: 'encoding',
+        defaultValue: 'UTF-8'
+
+loadExtProperty name: 'default_jre_container_path',
+        defaultValue: 'org.eclipse.jdt.launching.JRE_CONTAINER'
+
+loadExtProperty name: 'jre_container_path',
+        defaultValue: default_jre_container_path + '/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-' + jreVersion
+
+loadExtProperty name: 'gradle_container_path',
+        defaultValue: 'org.springsource.ide.eclipse.gradle.classpathcontainer'
+
+// e(fx)clipse
+loadExtProperty name: 'xText_nature',
+        defaultValue: 'org.eclipse.xtext.ui.shared.xtextNature'
+
+loadExtProperty name: 'xText_builder',
+        defaultValue: 'org.eclipse.xtext.ui.shared.xtextBuilder'
+
+loadExtProperty name: 'eFXclipse_container_path',
+        defaultValue: 'org.eclipse.fx.ide.jdt.core.JAVAFX_CONTAINER'
+
+// -------------------------------------------------
+
+group = 'net.awairo.favdler'
+version = '0.0.1'
+
+archivesBaseName = 'favdler'
+ext.mainClassFQDN = 'net.awairo.favdler.core.FavDownloader'
+
+configurations { provided }
+repositories { mavenCentral() }
+
+// -------------------------------------------------
+
+dependencies {
+
+    compile group:'com.google.guava', name:'guava',          version:'18.0'
+    compile group:'org.controlsfx',   name:'controlsfx',     version:'8.20.8'
+    compile group:'org.twitter4j',    name:'twitter4j-core', version:'4.0.2'
+
+    // log4j
+    compile group:'org.apache.logging.log4j',         name:'log4j-api',               version:'2.0.2'
+    compile group:'org.apache.logging.log4j',         name:'log4j-core',              version:'2.0.2'
+    // jackson(log configure parser)
+    compile group:'com.fasterxml.jackson.core',       name:'jackson-core',            version:'2.2.2'
+    compile group:'com.fasterxml.jackson.core',       name:'jackson-databind',        version:'2.2.2'
+    compile group:'com.fasterxml.jackson.core',       name:'jackson-annotations',     version:'2.2.2'
+    compile group:'com.fasterxml.jackson.dataformat', name:'jackson-dataformat-yaml', version:'2.2.2'
+
+    // lombok
+    provided group:'org.projectlombok', name:'lombok', version:'1.14.8'
+
+    // testing
+    testCompile group:'junit',           name:'junit',            version:'4.11'
+    testCompile group:'org.easytesting', name:'fest-assert-core', version:'2.0M10'
+    testCompile group:'org.jmockit',     name:'jmockit',          version:'1.12'
+}
+
+// -------------------------------------------------
+
+def documents = ['README.md', 'CREDITS.md', 'LICENSE', 'THIRDPARTYLICENSES.md']
+def timestamp = java.time.ZonedDateTime.now().toString()
+
+// create version properties
+file("src/main/resources/version.properties").write("version=" + version + "\n")
+
+sourceCompatibility = jreVersion
+targetCompatibility = jreVersion
+[compileJava, compileTestJava]*.options*.encoding = encoding
+
+// -------------------------------------------------
+
+sourceSets {
+    main {
+        compileClasspath += configurations.provided
+    }
+    test {
+        compileClasspath += configurations.provided
+        runtimeClasspath += configurations.provided
+    }
+}
+
+// -------------------------------------------------
+
+processResources {
+
+    // replace log setting
+    exclude 'log4j2.yml'
+    rename { replace('log4j2.prod.yml', 'log4j2.yml') }
+
+    // create default resources
+    from(sourceSets.main.resources.srcDirs + '/lang') {
+        rename { replace('resources_ja_JP.properties', 'resources.properties') }
+    }
+
+    from('./') {
+        include 'LICENSE'
+        into 'META-INF'
+    }
+}
+
+// -------------------------------------------------
+
+test {
+    jvmArgs "-javaagent:" + project.configurations.testCompile.find {it.name.startsWith('jmockit')}
+}
+
+// -------------------------------------------------
+
+jar {
+    appendix 'core'
+
+    manifest {
+        attributes 'FavDownloader-Version': version
+        attributes 'Timestamp': timestamp
+    }
+}
+
+// -------------------------------------------------
+
+javafx {
+    mainClass = mainClassFQDN
+}
+
+// -------------------------------------------------
+// Distribution tasks
+// -------------------------------------------------
+
+task oneJarBase(type:Jar, dependsOn: [classes, processResources]) {
+
+    from 'build/classes/main'
+    from 'build/resources/main'
+    exclude 'view'
+
+    manifest {
+        attributes 'FavDownloader-Version': version
+        attributes 'Timestamp': timestamp
+    }
+
+    destinationDir file('build/distributions')
+}
+
+task releaseOneJar(type:OneJar, dependsOn: oneJarBase) {
+
+    baseName 'FavDownloader'
+
+    mainClass = mainClassFQDN
+    baseJar = oneJarBase
+    targetConfiguration = configurations.compile
+    mergeManifestFromJar = true
+
+    doFirst {
+        // copy css to 'view' dir
+        def viewdir = file('build/one-jar-build/view')
+        ant.copy (todir: viewdir) {
+            fileset dir: file('build/resources/main/view')
+        }
+
+                // copy documents to 'doc' dir
+        def docdir = file('build/one-jar-build/doc')
+        documents.each {
+            ant.copy file: file(it), todir: docdir
+        }
+    }
+
+    // remove 'build/distributions/favdler-x.x.x.jar'
+    doLast {
+        delete file(oneJarBase.getArchivePath())
+    }
+}
+
+task releaseWinNoJRE(type:Zip) {
+    appendix 'win-nojre'
+
+    from 'build/distributions/FavDownloader/'
+    exclude 'runtime/', 'app/lombok*', 'FavDownloader.ico'
+
+    from('./') {
+        include documents
+        into 'doc'
+    }
+}
+
+task releaseWinWithJRE(type:Zip) {
+    appendix 'win-jre'
+
+    from 'build/distributions/FavDownloader/'
+    exclude 'app/lombok*', 'FavDownloader.ico'
+
+    from('./') {
+        include documents
+        into 'doc'
+    }
+}
+
+artifacts {
+    archives releaseWinNoJRE
+    archives releaseWinWithJRE
+    archives releaseOneJar
+}
+
+
+// -------------------------------------------------
+
+eclipse {
+
+    project{
+        // add e(fx)clipse plugin nature
+        if (xText_nature?.trim())
+            natures.add(xText_nature)
+
+        file {
+            whenMerged { project ->
+                // add e(fx)clipse plugin's xtext builder
+                if (!xText_builder?.trim()) return
+                def has_text_builder = project.buildCommands.any { it.name == xText_builder }
+                if (!has_text_builder)
+                    project.buildCommands = [[name:xText_builder]] + project.buildCommands
+            }
+        }
+    }
+
+    classpath {
+        plusConfigurations += [ configurations.provided ]
+        noExportConfigurations += [ configurations.provided ]
+
+        downloadSources = true
+        downloadJavadoc = false
+
+        // fix jre container (workspace-default -> java8)
+        containers.remove(default_jre_container_path)
+        containers.add(jre_container_path)
+
+        def boolean use_eFXclipse = eFXclipse_container_path?.trim()
+
+        // add e(fx)clipse plugin container
+        if (use_eFXclipse)
+            containers.add(eFXclipse_container_path)
+
+        file {
+
+            beforeMerged { classpath ->
+                // remove e(fx)clipse container path if added
+                if (use_eFXclipse)
+                    classpath.entries.removeAll { entry -> entry.path == eFXclipse_container_path }
+            }
+
+            whenMerged { classpath ->
+                // remove duplicate libs if have gradle-plugin dependencies
+                def has_gradle_plugin_container = classpath.entries.any { it.path == gradle_container_path }
+                if (has_gradle_plugin_container)
+                    classpath.entries = classpath.entries.findAll { it.kind != 'lib' }
+
+                // set false to exported property
+                if(use_eFXclipse)
+                    classpath.entries
+                        .findAll { it.path == eFXclipse_container_path }
+                        .each { it.exported = false }
+            }
+        }
+    }
+}
+
+// -------------------------------------------------
+
+task wrapper(type:Wrapper) { gradleVersion = '2.1' }
+
+// -------------------------------------------------
+
+/**
+ * プロジェクトの拡張プロパティが未設定の場合デフォルト値を設定.
+ *
+ * @param name property name
+ * @param defaultValue default value
+ */
+def void loadExtProperty(Map param) {
+
+    if (project.hasProperty(param.name)) {
+        logger.info("loadExtProperty(): Found '{}' property. (value: '{}')", param.name, project.ext[param.name])
+        return
+    }
+
+    logger.info("loadExtProperty(): Not found '{}' property. set on default value. (value: '{}')", param.name, param.defaultValue)
+    project.ext[param.name] = param.defaultValue
+}
