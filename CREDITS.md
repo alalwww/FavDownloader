@@ -55,7 +55,7 @@ https://bitbucket.org/shemnon/javafx-gradle
 
 
 
-images and SGVs
+Images and SVGs
 -----------------------
 
 - Twitter Brand Resources
