@@ -22,10 +22,10 @@ loadExtProperty name: 'gradle_container_path',
         defaultValue: 'org.springsource.ide.eclipse.gradle.classpathcontainer'
 
 // e(fx)clipse
-loadExtProperty name: 'xText_nature',
+loadExtProperty name: 'xtext_nature',
         defaultValue: 'org.eclipse.xtext.ui.shared.xtextNature'
 
-loadExtProperty name: 'xText_builder',
+loadExtProperty name: 'xtext_builder',
         defaultValue: 'org.eclipse.xtext.ui.shared.xtextBuilder'
 
 loadExtProperty name: 'eFXclipse_container_path',
@@ -218,16 +218,16 @@ eclipse {
 
     project{
         // add e(fx)clipse plugin nature
-        if (xText_nature?.trim())
-            natures.add(xText_nature)
+        if (xtext_nature?.trim())
+            natures.add(xtext_nature)
 
         file {
             whenMerged { project ->
                 // add e(fx)clipse plugin's xtext builder
-                if (!xText_builder?.trim()) return
-                def has_text_builder = project.buildCommands.any { it.name == xText_builder }
-                if (!has_text_builder)
-                    project.buildCommands = [[name:xText_builder]] + project.buildCommands
+                if (!xtext_builder?.trim()) return
+                def has_xtext_builder = project.buildCommands.any { it.name == xtext_builder }
+                if (!has_xtext_builder)
+                    project.buildCommands += [[name:xtext_builder]] + project.buildCommands
             }
         }
     }

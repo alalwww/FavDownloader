@@ -16,7 +16,7 @@ FavDownloader
 ScreenShots
 -----------------------
 <img src="../ss/1.png" height="150" alt="twitter oauth" title="Twitter認証">
-<img src="../ss/2.png" height="150" alt="twitter fav list" title="一覧画面">
+<img src="../ss/2.png" height="150" alt="twitter favs list" title="一覧画面">
 <img src="../ss/3.png" height="150" alt="download progress" title="ダウンロード中">
 
 Requirements
@@ -95,7 +95,7 @@ For developer
 3. if necessary, create your `gradle.properties` file in your project directory.
     - example)
 
-        ```:gradle.properties
+        ```properties:gradle.properties
         org.gradle.java.home=C:/Program Files (x86)/Java/jdk1.8.0_25
         jfxrtDir=C:/Program Files (x86)/Java/jdk1.8.0_25
         ```
@@ -115,9 +115,9 @@ For developer
 #### using eclipse, but e(fx)clipse plugin not installed
 - Add these property keys and empty values to `gradle.properties` file.
 
-```:gradle.properties
-xText_nature=
-xText_builder=
+```properties:gradle.properties
+xtext_nature=
+xtext_builder=
 eFXclipse_container_path=
 ```
 
@@ -136,8 +136,7 @@ Credit
 ---------------------
 
 
-( っ'ω'c)
----------------------
+### ( っ'ω'c)
 
 - デフォルトではeclipseタスクはe(fx)clipseプラグインのインストールされている環境を想定したファイルを生成します。
 それらが必要ない場合、gradle.propertiesを用いて追加されないようにできます。(上記)

@@ -82,7 +82,7 @@ https://www.eclipse.org/
     - e(fx)clipse
     http://www.eclipse.org/efxclipse
 
-    - gradle-integration-eclipse
+    - Gradle Integration for Eclipse (4.4)
     http://marketplace.eclipse.org/content/gradle-integration-eclipse-44
 
 - SceneBuilder
