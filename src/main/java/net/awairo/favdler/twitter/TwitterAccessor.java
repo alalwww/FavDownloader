@@ -10,7 +10,6 @@
 
 package net.awairo.favdler.twitter;
 
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import twitter4j.Twitter;
@@ -25,7 +24,7 @@ import net.awairo.common.exception.AppException;
  * @author alalwww
  */
 @EqualsAndHashCode
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@RequiredArgsConstructor
 public final class TwitterAccessor {
 
     private final Twitter twitter;
