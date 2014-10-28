@@ -52,9 +52,9 @@ import net.awairo.common.javafx.SimpleDialog;
 import net.awairo.common.util.RB;
 import net.awairo.favdler.downloader.DownloadTask;
 import net.awairo.favdler.downloader.FromSpec;
-import net.awairo.favdler.favlist.twitter.FavoriteListItems;
-import net.awairo.favdler.favlist.twitter.Tweet;
-import net.awairo.favdler.oauth.TwitterAccessor;
+import net.awairo.favdler.twitter.FavoriteListItems;
+import net.awairo.favdler.twitter.Tweet;
+import net.awairo.favdler.twitter.TwitterAccessor;
 
 /**
  * ツイート一覧画面.

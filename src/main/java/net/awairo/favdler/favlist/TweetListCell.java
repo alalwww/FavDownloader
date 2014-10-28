@@ -44,7 +44,7 @@ import net.awairo.favdler.core.ImageCache;
 import net.awairo.favdler.core.Views;
 import net.awairo.favdler.downloader.DownloadTask;
 import net.awairo.favdler.downloader.FromSpec;
-import net.awairo.favdler.favlist.twitter.Tweet;
+import net.awairo.favdler.twitter.Tweet;
 
 /**
  * ツイート一覧のセル.

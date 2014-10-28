@@ -8,7 +8,7 @@
  * http://opensource.org/licenses/mit-license.php
  */
 
-package net.awairo.favdler.oauth;
+package net.awairo.favdler.twitter;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;

@@ -24,6 +24,7 @@ import net.awairo.common.javafx.FxUtils;
 import net.awairo.common.javafx.MyTask;
 import net.awairo.common.javafx.TaskExecutor;
 import net.awairo.common.util.Desktop;
+import net.awairo.favdler.twitter.TwitterAccessor;
 
 /**
  * Twitter認証.

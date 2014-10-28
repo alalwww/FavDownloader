@@ -22,6 +22,7 @@ import net.awairo.common.exception.AppException;
 import net.awairo.common.javafx.Dialog;
 import net.awairo.common.javafx.SceneController;
 import net.awairo.favdler.core.Views;
+import net.awairo.favdler.twitter.TwitterAccessor;
 
 /**
  * Twitter認証画面.

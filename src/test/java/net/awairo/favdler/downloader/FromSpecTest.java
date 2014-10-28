@@ -14,7 +14,7 @@ import static org.fest.assertions.api.Assertions.*;
 
 import org.junit.Test;
 
-import net.awairo.favdler.favlist.twitter.Tweet;
+import net.awairo.favdler.twitter.Tweet;
 
 /**
  * @author alalwww

@@ -30,7 +30,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 
 import net.awairo.common.exception.AppException;
-import net.awairo.favdler.favlist.twitter.Tweet;
+import net.awairo.favdler.twitter.Tweet;
 
 /**
  * ダウンロード元.

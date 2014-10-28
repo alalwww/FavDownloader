@@ -8,7 +8,7 @@
  * http://opensource.org/licenses/mit-license.php
  */
 
-package net.awairo.favdler.favlist.twitter;
+package net.awairo.favdler.twitter;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
