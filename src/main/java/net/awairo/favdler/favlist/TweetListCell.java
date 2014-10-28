@@ -204,14 +204,17 @@ public final class TweetListCell extends ListCell<Tweet> implements Controller {
         }
     }
 
+    private UserData userData() {
+        return (UserData) getListView().getUserData();
+    }
+
     // --------------------------------------------
     // event handlers
     // --------------------------------------------
 
     public void download_onAction(ActionEvent event) {
 
-        // TODO: ちょっとゴリ押しすぎなのでもう少しちゃんとした値渡しを考える
-        File toDir = (File) getListView().getUserData();
+        File toDir = userData().userHome();
         if (toDir == null || !toDir.exists() || !toDir.isDirectory()) {
             log.debug("toDir: {}", toDir);
 

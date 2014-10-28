@@ -20,6 +20,7 @@ import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -65,34 +66,43 @@ import net.awairo.favdler.twitter.TwitterAccessor;
 @ExtensionMethod({ Extensions.Options.class, Extensions.Strings.class, Extensions.Comparables.class })
 public final class TweetListView implements SceneController {
 
+    /** 上と下の区切り. */
     @FXML
     SplitPane divider;
 
+    /** スクリーンネームテキストフィールド. */
     @FXML
     TextField screenName;
 
+    /** ディレクトリパステキストフィールド. */
     @FXML
     TextField downloadDirectoryPath;
+    /** ディレクトリ選択ボタン. */
     @FXML
     Button folderSelectButton;
 
+    /** 一覧ペイン. */
     @FXML
     AnchorPane listPane;
 
+    /** API残数. */
     @FXML
     Label apiLimit;
+    /** メディアのみチェックボックス. */
     @FXML
     CheckBox mediaOnly;
 
+    /** お気に入りツイート一覧. */
     @FXML
     ListView<Tweet> list;
 
-    // services
     // ------------------------------------------
-    private FavoriteFinder searcher;
-    private ApiResetInfoUpdater apiResetInfoUpdater;
-    // ------------------------------------------
+
     private final DirectoryChooser dirChooser = new DirectoryChooser();
+    private final ApiLimitUpdater apiLimitUpdater = new ApiLimitUpdater();
+    private FavoriteFinder searcher;
+
+    // ------------------------------------------
 
     /** 検索結果. */
     private FavoriteListItems searchResult;
@@ -100,43 +110,17 @@ public final class TweetListView implements SceneController {
     /** ツイッターへのアクセス. */
     private TwitterAccessor accessor;
 
-    public void setTwitterAccessor(TwitterAccessor accessor) {
-        checkState(this.accessor == null);
-
-        this.accessor = accessor;
-        searcher = new FavoriteFinder(accessor.twitter());
-        screenName.setText(addAtmark(accessor.accessToken().getScreenName()));
-
-        setupService();
-        searcher.start();
-    }
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         log.trace("initialize({}, {})", location, resources);
 
-        File homeDir = new File(System.getProperty("user.home"));
-        if (homeDir.exists() && homeDir.isDirectory()) {
-            dirChooser.setInitialDirectory(homeDir);
-            downloadDirectoryPath.setText(homeDir.getAbsolutePath());
-            list.setUserData(homeDir);
-        }
-
-        apiResetInfoUpdater = new ApiResetInfoUpdater();
-
+        list.setUserData(new UserData());
         list.setCellFactory(TweetListCell.newFactory());
         list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        screenName.focusedProperty().addListener((osb, oVal, nVal) -> {
-            log.debug("focus: {}, ({} -> {})", osb, oVal, nVal);
+        screenName.focusedProperty().addListener(this::addOrRemoveAtmark);
 
-            if (nVal) {
-                screenName.setText(removeAtmark(screenName.getText()));
-            } else {
-                screenName.setText(addAtmark(screenName.getText()));
-            }
-        });
-
+        initializeDirChooser();
     }
 
     @Override
@@ -146,11 +130,82 @@ public final class TweetListView implements SceneController {
         stage().setMaxWidth(stage().getWidth());
     }
 
+    /** ツイッターへのアクセッサ. */
+    public void setTwitterAccessor(TwitterAccessor accessor) {
+        checkState(this.accessor == null);
+        this.accessor = checkNotNull(accessor);
+
+        searcher = new FavoriteFinder(accessor.twitter());
+        screenName.setText(addAtmark(accessor.accessToken().getScreenName()));
+
+        setupService();
+        searcher.start();
+    }
+
+    private void initializeDirChooser() {
+
+        String home = System.getProperty("user.home");
+
+        log.debug("user.home={}", home);
+
+        if (home == null)
+            log.warn("'user.home' property is null");
+
+        File homeDir = new File(home);
+
+        if (!homeDir.exists()) {
+            log.warn("{} is not existed", homeDir);
+            homeDir = new File("./");
+        }
+        if (!homeDir.isDirectory()) {
+            log.warn("{} is not a directory", homeDir);
+            homeDir = new File("./");
+        }
+        if (!homeDir.canWrite()) {
+            log.warn("{} can not writable", homeDir);
+            homeDir = new File("./");
+        }
+
+        dirChooser.setInitialDirectory(homeDir);
+        downloadDirectoryPath.setText(homeDir.getAbsolutePath());
+
+        userData().userHome(homeDir);
+    }
+
     private void setupService() {
         searcher.screenName = removeAtmark(screenName.getText());
         searcher.count = 200; // MAX
         searcher.sinceId = Optional.empty();
         searcher.maxId = Optional.empty();
+    }
+
+    private void setToListFor(ObservableList<Tweet> items) {
+        list.getSelectionModel().clearSelection();
+
+        if (mediaOnly.isSelected()) {
+            items = items.stream()
+                    .filter(Tweet::hasMedia)
+                    .collect(() -> FXCollections.observableArrayList(), (l, t) -> l.add(t), (l1, l2) -> l1.addAll(l2));
+        }
+
+        list.setItems(items);
+    }
+
+    private UserData userData() {
+        return (UserData) list.getUserData();
+    }
+
+    // ------------------------------------------
+    // event handlers
+    // ------------------------------------------
+
+    private void addOrRemoveAtmark(ObservableValue<? extends Boolean> osb, Boolean oVal, Boolean nVal) {
+        log.trace("focus: {}, ({} -> {})", osb, oVal, nVal);
+
+        String name = screenName.getText();
+        name = nVal ? removeAtmark(name) : addAtmark(name);
+
+        screenName.setText(name);
     }
 
     private static String removeAtmark(String s) {
@@ -161,21 +216,9 @@ public final class TweetListView implements SceneController {
         return s.startsWith("@") ? s : "@" + s;
     }
 
-    private void setItems(ObservableList<Tweet> items) {
-        list.getSelectionModel().clearSelection();
-        if (mediaOnly.isSelected()) {
-            items = items.stream()
-                    .filter(Tweet::hasMedia)
-                    .collect(() -> FXCollections.observableArrayList(), (l, t) -> l.add(t), (l1, l2) -> l1.addAll(l2));
-        }
-
-        list.setItems(items);
-    }
-
-    // ------------------------------------------
-    // event handlers
-    // ------------------------------------------
-
+    /**
+     * リロードボタン押下.
+     */
     public void reloadFavorites_onAction(ActionEvent event) {
         log.trace("reloadFavorites_onMouseClicked: {}", event);
         searchResult = null;
@@ -201,6 +244,9 @@ public final class TweetListView implements SceneController {
         list.setUserData(dirChooser.getInitialDirectory());
     }
 
+    /**
+     * 選択ツイート一気にDL.
+     */
     public void startDownload_onAction(ActionEvent event) {
         log.trace("startDownload_onAction: {}", event);
 
@@ -225,10 +271,16 @@ public final class TweetListView implements SceneController {
         progress.show();
     }
 
+    /**
+     * メディアエンティティのあるツイートのみのチェックボックスON/OFF.
+     */
     public void mediaOnly_onAction(ActionEvent event) {
-        setItems(searchResult.list());
+        setToListFor(searchResult.list());
     }
 
+    /**
+     * 検索結果のリセット
+     */
     private void resetSearchResult(FavoriteListItems result) {
         if (searchResult != null) {
             searchResult.update(result);
@@ -236,8 +288,8 @@ public final class TweetListView implements SceneController {
             searchResult = result;
         }
 
-        apiResetInfoUpdater.update();
-        setItems(result.list());
+        apiLimitUpdater.update();
+        setToListFor(result.list());
     }
 
     // ------------------------------------------
@@ -276,7 +328,7 @@ public final class TweetListView implements SceneController {
     /**
      * APIリセット情報の更新サービス.
      */
-    final class ApiResetInfoUpdater extends ServiceBase<Void, ApiResetInfoUpdater> {
+    final class ApiLimitUpdater extends ServiceBase<Void, ApiLimitUpdater> {
 
         void update() {
 
