@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 
+import lombok.NonNull;
+
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import lombok.AccessLevel;
@@ -44,21 +46,32 @@ public abstract class AbstractTask<R, T extends AbstractTask<R, T>> extends Task
 
     private Optional<String> name = Optional.empty();
 
+    @NonNull
     @Getter
     @Setter
     private Optional<Runner> scheduledRunner = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Runner> runningRunner = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Runner> cancelledRunner = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Runner> doneRunner = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Consumer<Throwable>> failedConsumer = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Consumer<R>> succeededConsumer = Optional.empty();
