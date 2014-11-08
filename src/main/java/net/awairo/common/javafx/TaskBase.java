@@ -227,6 +227,10 @@ public abstract class TaskBase<R, T extends TaskBase<R, T>> extends Task<R>
      */
     protected final boolean sleep(long millis, LongConsumer sleepCanceled) {
 
+        if (FxUtils.isFxApplicationThread()) {
+            log.warn("sleep {} ms on FX Application thread. {}", millis, this);
+        }
+
         try {
             Thread.sleep(millis);
             return true;
