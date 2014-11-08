@@ -13,6 +13,8 @@ package net.awairo.common.javafx;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import lombok.NonNull;
+
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -35,24 +37,37 @@ public abstract class ServiceBase<R, S extends ServiceBase<R, S>> extends Servic
 
     private Optional<String> name = Optional.empty();
 
+    @NonNull
     @Getter
     @Setter
     private Optional<Runner> scheduledRunner = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Runner> readyRunner = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Runner> runningRunner = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Runner> cancelledRunner = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Runner> doneRunner = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Consumer<Throwable>> failedConsumer = Optional.empty();
+
+    @NonNull
     @Getter
     @Setter
     private Optional<Consumer<R>> succeededConsumer = Optional.empty();
