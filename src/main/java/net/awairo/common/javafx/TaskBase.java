@@ -102,10 +102,6 @@ public abstract class TaskBase<R, T extends TaskBase<R, T>> extends Task<R>
         }
     }
 
-    /* package */final void initialize() {
-
-    }
-
     /**
      * タスクを実行し、実行結果を返します.
      *
