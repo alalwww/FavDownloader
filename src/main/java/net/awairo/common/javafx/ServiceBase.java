@@ -10,6 +10,8 @@
 
 package net.awairo.common.javafx;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -34,6 +36,9 @@ import net.awairo.common.function.Runner;
 @Log4j2
 public abstract class ServiceBase<R, S extends ServiceBase<R, S>> extends Service<R>
         implements WorkerStateEventHandlers.Service<R, S>, DialogFactory {
+
+    private final boolean saveLastValue;
+    private Optional<R> lastValue = Optional.empty();
 
     private Optional<String> name = Optional.empty();
 
@@ -76,12 +81,23 @@ public abstract class ServiceBase<R, S extends ServiceBase<R, S>> extends Servic
      * Constructor.
      */
     protected ServiceBase() {
+        this(false);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param saveLastValue trueを指定した場合最後のタスクの実行結果を保持する
+     * @see #getLastValue()
+     */
+    protected ServiceBase(boolean saveLastValue) {
+        this.saveLastValue = saveLastValue;
+
         setExecutor(TaskExecutorImpl.instance());
         executorProperty().addListener(event -> {
             log.debug("変更禁止: {}", event);
             throw new InternalError("Executorは変更できません");
         });
-
     }
 
     @Override
@@ -127,6 +143,34 @@ public abstract class ServiceBase<R, S extends ServiceBase<R, S>> extends Servic
     // -----------------------------
 
     /**
+     * タスクの最後の実行結果を取得します.
+     *
+     * <p>
+     * まだ一度もタスクが実行されていないか、最後のタスク実行がキャンセルされたか、失敗している場合、{@link Optional#empty()}を返します。
+     * </p>
+     *
+     * @return タスクの最後の実行結果
+     */
+    protected final Optional<R> getLastValue() {
+        checkState(!FxUtils.isFxApplicationThread(), "アプリケーションスレッドで値を取得する場合 getValue()メソッドを使用してください。 %s", this);
+        return lastValue;
+    }
+
+    private void setLastValue() {
+        if (saveLastValue) {
+            lastValue = Optional.ofNullable(getValue());
+        }
+    }
+
+    private void resetLastValue() {
+        if (saveLastValue) {
+            lastValue = Optional.empty();
+        }
+    }
+
+    // -----------------------------
+
+    /**
      * <p>このメソッドは、FXアプリケーションスレッド内で、対応する{@link WorkerStateEvent}のディスパッチ後にコールされます。</p>
      */
     @Override
@@ -163,6 +207,7 @@ public abstract class ServiceBase<R, S extends ServiceBase<R, S>> extends Servic
     protected void cancelled() {
         super.cancelled();
         log.trace("{} task cancelled.", this);
+        resetLastValue();
         cancelledRunner.ifPresent(r -> r.run());
         doneRunner.ifPresent(r -> r.run());
     }
@@ -174,6 +219,7 @@ public abstract class ServiceBase<R, S extends ServiceBase<R, S>> extends Servic
     protected void failed() {
         super.failed();
         log.trace("{} task failed.", this);
+        resetLastValue();
         failedConsumer.ifPresent(c -> c.accept(getException()));
         doneRunner.ifPresent(r -> r.run());
     }
@@ -185,6 +231,7 @@ public abstract class ServiceBase<R, S extends ServiceBase<R, S>> extends Servic
     protected void succeeded() {
         super.succeeded();
         log.trace("{} task succeeded.", this);
+        setLastValue();
         succeededConsumer.ifPresent(c -> c.accept(getValue()));
         doneRunner.ifPresent(r -> r.run());
     }
