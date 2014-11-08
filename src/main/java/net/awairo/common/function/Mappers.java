@@ -47,7 +47,7 @@ public final class Mappers {
 
         return a -> {
             return bs.stream()
-                    .min(Comparator.<T> naturalOrder()) // 型を明示しないとjavacがこける(Eclipseのコンパイラだとエラーにならない)
+                    .max(Comparator.<T> naturalOrder()) // 型を明示しないとjavacがこける(Eclipseのコンパイラだとエラーにならない)
                     .map(max(a))
                     .orElse(a);
         };
