@@ -12,7 +12,10 @@ package net.awairo.common.function;
 
 import static com.google.common.base.Preconditions.*;
 
+import java.util.Optional;
 import java.util.function.Function;
+
+import com.google.common.base.Throwables;
 
 /**
  * 例外をスロー可能な{@link java.util.function.Function}.
@@ -83,13 +86,43 @@ public interface ThrowableFunction<T, R> {
     }
 
     /**
+     * {@link Function}に変換します.
+     *
+     * @return Function
+     */
+    default Function<T, R> toFunction() {
+        return t -> {
+            try {
+                return apply(t);
+            } catch (Exception e) {
+                throw Throwables.propagate(e);
+            }
+        };
+    }
+
+    /**
+     * {@link Function}に変換します.
+     *
+     * @return Function
+     */
+    default Function<T, Optional<R>> toOptionalFunction() {
+        return t -> {
+            try {
+                return Optional.ofNullable(apply(t));
+            } catch (Exception e) {
+                return Optional.empty();
+            }
+        };
+    }
+
+    /**
      * {@link java.util.function.Function}をラップします.
      *
      * @param fn 元にする{@link java.util.function.Function}
      * @return ラップした{@link ThrowableFunction}
      */
     static <T, R> ThrowableFunction<T, R> wrap(Function<? super T, ? extends R> fn) {
-        checkNotNull(fn, "after");
+        checkNotNull(fn, "fn");
 
         return t -> fn.apply(t);
     }

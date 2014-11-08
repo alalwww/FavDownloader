@@ -14,6 +14,8 @@ import static com.google.common.base.Preconditions.*;
 
 import java.util.function.Consumer;
 
+import com.google.common.base.Throwables;
+
 /**
  * 例外をスロー可能な{@link java.util.function.Consumer}.
  *
@@ -57,6 +59,21 @@ public interface ThrowableConsumer<T> {
         checkNotNull(after, "after");
 
         return andThen((ThrowableConsumer<? super T>) t -> after.accept(t));
+    }
+
+    /**
+     * {@link Consumer} に変換します.
+     *
+     * @return Consumer
+     */
+    default Consumer<T> toConsumer() {
+        return t -> {
+            try {
+                accept(t);
+            } catch (Exception e) {
+                throw Throwables.propagate(e);
+            }
+        };
     }
 
 }

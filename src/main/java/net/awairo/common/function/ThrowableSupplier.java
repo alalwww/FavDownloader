@@ -10,7 +10,12 @@
 
 package net.awairo.common.function;
 
+import static com.google.common.base.Preconditions.*;
+
+import java.util.Optional;
 import java.util.function.Supplier;
+
+import com.google.common.base.Throwables;
 
 /**
  * 例外をスロー可能な{@link java.util.function.Supplier}.
@@ -36,7 +41,29 @@ public interface ThrowableSupplier<R> {
      * @return 合成した関数
      */
     default <R2> ThrowableSupplier<R2> map(ThrowableFunction<? super R, ? extends R2> mapper) {
+        checkNotNull(mapper, "mapper");
+
         return () -> mapper.apply(get());
+    }
+
+    default Supplier<R> toSupplier() {
+        return () -> {
+            try {
+                return get();
+            } catch (Exception e) {
+                throw Throwables.propagate(e);
+            }
+        };
+    }
+
+    default Supplier<Optional<R>> toOptionalSupplier() {
+        return () -> {
+            try {
+                return Optional.ofNullable(get());
+            } catch (Exception e) {
+                return Optional.empty();
+            }
+        };
     }
 
     /**
@@ -46,6 +73,8 @@ public interface ThrowableSupplier<R> {
      * @return ラップした{@link ThrowableSupplier}
      */
     static <R> ThrowableSupplier<R> wrap(Supplier<? extends R> supplier) {
+        checkNotNull(supplier, "supplier");
+
         return () -> supplier.get();
     }
 }

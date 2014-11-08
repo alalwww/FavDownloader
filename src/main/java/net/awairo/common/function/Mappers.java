@@ -13,8 +13,6 @@ package net.awairo.common.function;
 import static com.google.common.base.Preconditions.*;
 
 import java.text.ParseException;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
@@ -35,75 +33,111 @@ import lombok.extern.log4j.Log4j2;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Mappers {
 
-    public static <T extends Comparable<? super T>> Function<T, T> max(T b) {
-        checkNotNull(b, "b");
-
-        return a -> a.compareTo(b) < 0 ? a : b;
-    }
-
-    public static <T extends Comparable<? super T>> Function<T, T> max(Collection<? extends T> bs) {
-        checkNotNull(bs, "bs is null");
-        checkArgument(!bs.isEmpty(), "bs is empty");
-
-        return a -> {
-            return bs.stream()
-                    .max(Comparator.<T> naturalOrder()) // 型を明示しないとjavacがこける(Eclipseのコンパイラだとエラーにならない)
-                    .map(max(a))
-                    .orElse(a);
-        };
-    }
-
-    public static <T extends Comparable<? super T>> Function<T, T> min(T b) {
-        checkNotNull(b, "b");
-
-        return a -> a.compareTo(checkNotNull(b)) > 0 ? a : b;
-    }
-
-    public static <T extends Comparable<? super T>> Function<T, T> min(Collection<? extends T> bs) {
-        checkNotNull(bs, "bs is null");
-        checkArgument(!bs.isEmpty(), "bs is empty");
-
-        return a -> {
-            return bs.stream()
-                    .min(Comparator.<T> naturalOrder()) // 型を明示しないとjavacがこける(Eclipseのコンパイラだとエラーにならない)
-                    .map(min(a))
-                    .orElse(a);
-        };
-    }
-
-    public static <T extends Comparable<? super T>> Function<T, T> maxLimit(T max) {
-        checkNotNull(max, "max");
-
-        return a -> min(max).apply(a);
-    }
-
+    /**
+     * 受け取った値がmin以下の場合minを返すマップ関数.
+     *
+     * @param min 下限値
+     * @return マップ関数
+     */
     public static <T extends Comparable<? super T>> Function<T, T> minLimit(T min) {
-        checkNotNull(min, "min");
+        checkNotNull(min, "b");
 
-        return a -> max(min).apply(a);
+        return a -> Filters.isLesserThanOrEqual(min).test(a) ? a : min;
     }
 
-    public static <T> Function<T, T> silentValidate(Predicate<? super T> validator, T defaultValue) {
-        return a -> validator.test(a) ? a : defaultValue;
+    /**
+     * 受け取った値がmax以上の場合maxを返すマップ関数.
+     *
+     * @param max 上限値
+     * @return マップ関数
+     */
+    public static <T extends Comparable<? super T>> Function<T, T> maxLimit(T max) {
+        checkNotNull(max, "b");
+
+        return a -> Filters.isGreaterThanOrEqual(max).test(a) ? a : max;
     }
 
-    public static <T extends Comparable<? super T>> Function<T, T> tryMaxLimit(T max, T defaultValue) {
-        return a -> a.compareTo(max) <= 0 ? a : defaultValue;
-    }
-
-    public static <T extends Comparable<? super T>> Function<T, T> tryMinLimit(T min, T defaultValue) {
-        return a -> a.compareTo(min) >= 0 ? a : defaultValue;
-    }
-
+    /**
+     * 受け取った値が制限値の範囲内でない場合は、境界値で丸めて返すマップ関数.
+     *
+     * @param min 下限値
+     * @param max 上限値
+     * @return マップ関数
+     */
     public static <T extends Comparable<? super T>> Function<T, T> limit(T min, T max) {
+        checkNotNull(min, "min");
+        checkNotNull(max, "max");
         checkArgument(min.compareTo(max) < 0);
+
         return a -> maxLimit(max).andThen(minLimit(min)).apply(a);
     }
 
+    /**
+     * 値を検証し値を結果に応じた{@link Optional}でラップし返すマップ関数.
+     *
+     * @param validator 検証処理
+     * @return マップ関数
+     */
+    public static <T> Function<T, Optional<T>> validate(Predicate<? super T> validator) {
+        checkNotNull(validator, "validator");
+
+        return tryParse(a -> validator.test(a) ? a : null);
+    }
+
+    /**
+     * 値が下限値以上かを検証し返すマップ関数.
+     *
+     * @param min 下限値
+     * @return マップ関数
+     */
+    public static <T extends Comparable<? super T>> Function<T, Optional<T>> validateMin(T min) {
+        checkNotNull(min, "min");
+
+        return validate(Filters.isGreaterThanOrEqual(min));
+    }
+
+    /**
+     * 値が上限値以下かを検証し返すマップ関数.
+     *
+     * @param max 上限値
+     * @return マップ関数
+     */
+    public static <T extends Comparable<? super T>> Function<T, Optional<T>> validateMax(T max) {
+        checkNotNull(max, "max");
+
+        return validate(Filters.isLesserThanOrEqual(max));
+    }
+
+    /**
+     * 受け取った値が制限値の範囲内かを検証し返すマップ関数.
+     *
+     * @param min 下限値
+     * @param max 上限値
+     * @return マップ関数
+     */
+    public static <T extends Comparable<? super T>> Function<T, Optional<T>> validateLimit(T min, T max) {
+        checkNotNull(min, "min");
+        checkNotNull(max, "max");
+        checkArgument(min.compareTo(max) < 0);
+
+        return validate(Filters.isLesserThanOrEqual(max).and(Filters.isGreaterThanOrEqual(min)));
+    }
+
+    /**
+     * 値をパースし結果を返すマップ関数.
+     *
+     * @param parser パース処理
+     * @return マップ関数
+     */
     public static <V, R> Function<V, Optional<R>> tryParse(Parser<? super V, ? extends R> parser) {
+        checkNotNull(parser, "parser");
+
         return value -> {
             try {
-                return Optional.ofNullable(parser.parse(value));
+                R ret = parser.parse(value);
+                if (ret == null)
+                    log.debug("parse failed.");
+                return Optional.ofNullable(ret);
             } catch (ParseException | NumberFormatException e) {
                 log.debug("parse failed.", e);
                 return Optional.empty();
@@ -111,18 +145,78 @@ public final class Mappers {
         };
     }
 
+    /**
+     * パーサー.
+     *
+     * @author alalwww
+     * @param <V> パース対象のタイプ
+     * @param <R> パース結果のタイプ
+     */
     @FunctionalInterface
     public interface Parser<V, R> {
+
+        /**
+         * 値をパースし返します.
+         *
+         * @param value パース対象値
+         * @return パース結果 null を返却した場合パース失敗と同等の結果となる
+         * @throws ParseException パースに失敗した場合
+         * @throws NumberFormatException パースに失敗した場合
+         */
         R parse(V value) throws ParseException, NumberFormatException;
 
+        /**
+         * この関数の前に実行する関数を合成します.
+         *
+         * @param before 前に実行する関数
+         * @return 合成関数
+         */
         default <T> Parser<T, R> compose(Parser<? super T, ? extends V> before) {
             checkNotNull(before, "before");
+
             return t -> parse(before.parse(t));
         }
 
+        /**
+         * この関数の後に実行する関数を合成します.
+         *
+         * @param after 後に実行する関数
+         * @return 合成関数
+         */
         default <T> Parser<V, T> andThen(Parser<? super R, ? extends T> after) {
             checkNotNull(after, "after");
+
             return t -> after.parse(parse(t));
+        }
+
+        /**
+         * 値をそのまま返すだけの関数.
+         *
+         * @return 値をそのまま返すだけの関数
+         */
+        static <T> Parser<T, T> identity() {
+            return t -> t;
+        }
+
+        /**
+         * 常に検証が失敗する関数.
+         *
+         * @return 常に検証が失敗する関数
+         */
+        static <T> Parser<T, T> allwaysFail() {
+            return t -> null;
+        }
+
+        /**
+         * {@link Function}をラップします.
+         *
+         * @param fn ファンクション
+         * @return ラップした関数
+         */
+        static <V, R> Parser<V, R> wrap(Function<V, R> fn) {
+            checkNotNull(fn, "fn");
+
+            return v -> fn.apply(v);
         }
     }
 
