@@ -33,7 +33,7 @@ public interface TaskExecutor {
      *
      * @param task タスク
      */
-    default void execute(AbstractTask<?, ?> task) {
+    default void execute(TaskBase<?, ?> task) {
         TaskExecutorImpl.instance().execute(task);
     }
 

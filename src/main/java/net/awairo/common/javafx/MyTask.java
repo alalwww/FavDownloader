@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
  * @author alalwww
  * @param <R> タスクの実行結果タイプ
  */
-public abstract class MyTask<R> extends AbstractTask<R, MyTask<R>> {
+public abstract class MyTask<R> extends TaskBase<R, MyTask<R>> {
 
     /**
      * タスクのアップデートや戻り値が必要ない単純なタスクを生成します.

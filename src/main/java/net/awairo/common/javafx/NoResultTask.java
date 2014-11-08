@@ -21,7 +21,7 @@ import net.awairo.common.function.ThrowableSupplier;
  *
  * @author alalwww
  */
-public abstract class NoResultTask extends AbstractTask<Void, NoResultTask> {
+public abstract class NoResultTask extends TaskBase<Void, NoResultTask> {
 
     /**
      * タスクのアップデート、戻り値が必要ない単純なタスクを生成します.

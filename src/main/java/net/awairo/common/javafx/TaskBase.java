@@ -14,13 +14,12 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 
-import lombok.NonNull;
-
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
@@ -41,7 +40,7 @@ import net.awairo.common.function.Runner;
  */
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public abstract class AbstractTask<R, T extends AbstractTask<R, T>> extends Task<R>
+public abstract class TaskBase<R, T extends TaskBase<R, T>> extends Task<R>
         implements WorkerStateEventHandlers.Task<R, T>, DialogFactory {
 
     private Optional<String> name = Optional.empty();
