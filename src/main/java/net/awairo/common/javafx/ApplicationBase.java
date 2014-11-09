@@ -137,7 +137,15 @@ public abstract class ApplicationBase extends Application implements SceneChange
             } catch (Error e2) {
                 // TODO: Log4j 2.1 以降に更新したら見直す
                 // https://issues.apache.org/jira/browse/LOG4J2-832 が修正されるまでコケることあるっぽい
-                e2.printStackTrace();
+                System.err.println("Log4J2のエラーによりログの出力に失敗");
+
+                System.err.println("発生した例外");
+                e.printStackTrace(System.err);
+
+                System.err.println("ログ処理の例外");
+                e2.printStackTrace(System.err);
+
+                System.err.println("アプリケーションを終了します");
                 status.set(STUTUS_ERROR);
                 Platform.exit();
             }
@@ -164,7 +172,7 @@ public abstract class ApplicationBase extends Application implements SceneChange
             } catch (Throwable e) {
                 if (e instanceof ThreadDeath)
                     return;
-                e.printStackTrace();
+                e.printStackTrace(System.err);
             }
         }
     }
