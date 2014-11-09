@@ -14,16 +14,11 @@ import static com.google.common.base.Preconditions.*;
 
 import java.io.File;
 import java.net.URL;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -35,22 +30,13 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.ExtensionMethod;
+import lombok.val;
 import lombok.extern.log4j.Log4j2;
-import twitter4j.Paging;
-import twitter4j.Status;
-import twitter4j.Twitter;
 
-import net.awairo.common.extension.Extensions;
 import net.awairo.common.javafx.Dialog;
-import net.awairo.common.javafx.MyTask;
 import net.awairo.common.javafx.NoResultTask;
 import net.awairo.common.javafx.SceneController;
-import net.awairo.common.javafx.ServiceBase;
 import net.awairo.common.javafx.SimpleDialog;
-import net.awairo.common.util.RB;
 import net.awairo.favdler.downloader.DownloadTask;
 import net.awairo.favdler.downloader.FromSpec;
 import net.awairo.favdler.twitter.FavoriteListItems;
@@ -63,7 +49,6 @@ import net.awairo.favdler.twitter.TwitterAccessor;
  * @author alalwww
  */
 @Log4j2
-@ExtensionMethod({ Extensions.Options.class, Extensions.Strings.class, Extensions.Comparables.class })
 public final class TweetListView implements SceneController {
 
     /** 上と下の区切り. */
@@ -99,49 +84,66 @@ public final class TweetListView implements SceneController {
     // ------------------------------------------
 
     private final DirectoryChooser dirChooser = new DirectoryChooser();
-    private final ApiLimitUpdater apiLimitUpdater = new ApiLimitUpdater();
-    private FavoriteFinder searcher;
+    private final RateLimitUpdater rateLimitUpdater = new RateLimitUpdater();
+    private final FavoriteListService twitterFavorites = new FavoriteListService();
+
+    private InitializedState initState = InitializedState.PRE_INITIALIZED;
+
+    private enum InitializedState {
+        PRE_INITIALIZED, INITIALIZED, POST_INITIALIZED, DONE
+    }
 
     // ------------------------------------------
 
-    /** 検索結果. */
-    private FavoriteListItems searchResult;
-
-    /** ツイッターへのアクセス. */
-    private TwitterAccessor accessor;
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        log.trace("initialize({}, {})", location, resources);
+        checkState(initState == InitializedState.PRE_INITIALIZED);
 
         list.setUserData(new UserData());
         list.setCellFactory(TweetListCell.newFactory());
         list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+        // フォーカスのあるときはScreenNameの @ を消す
         screenName.focusedProperty().addListener(this::addOrRemoveAtmark);
 
+        apiLimit.textProperty().bind(rateLimitUpdater.messageProperty());
+
+        twitterFavorites.valueProperty().addListener(this::updateListViewItems);
+
         initializeDirChooser();
+
+        initState = InitializedState.INITIALIZED;
     }
 
     @Override
     public void postInitialize() {
+        checkState(initState == InitializedState.INITIALIZED);
+
         stage().setResizable(true);
         stage().setMinWidth(stage().getWidth());
         stage().setMaxWidth(stage().getWidth());
+        initState = InitializedState.POST_INITIALIZED;
     }
 
-    /** ツイッターへのアクセッサ. */
+    /** ツイッターへのアクセッサを設定. */
     public void setTwitterAccessor(TwitterAccessor accessor) {
-        checkState(this.accessor == null);
-        this.accessor = checkNotNull(accessor);
+        checkNotNull(accessor, "accessor");
+        checkState(initState == InitializedState.POST_INITIALIZED);
 
-        searcher = new FavoriteFinder(accessor.twitter());
-        screenName.setText(addAtmark(accessor.accessToken().getScreenName()));
+        twitterFavorites.initialize(accessor);
 
-        setupService();
-        searcher.start();
+        // 認証したユーザーアカウントを初期値にする
+        val sn = accessor.accessToken().getScreenName();
+        screenName.setText(addAtmark(sn));
+        twitterFavorites.screenName(sn);
+
+        // 初期表示としてお気に入り一覧のロードを始める
+        refreshFavoriteList();
+
+        initState = InitializedState.DONE;
     }
 
+    /** 保存先ディレクトリの初期設定. */
     private void initializeDirChooser() {
 
         String home = System.getProperty("user.home");
@@ -172,15 +174,27 @@ public final class TweetListView implements SceneController {
         userData().userHome(homeDir);
     }
 
-    private void setupService() {
-        searcher.screenName = removeAtmark(screenName.getText());
-        searcher.count = 200; // MAX
-        searcher.sinceId = Optional.empty();
-        searcher.maxId = Optional.empty();
+    /** 最新から最大で200件のお気に入り一覧を取得する. */
+    private void refreshFavoriteList() {
+        twitterFavorites.screenName(removeAtmark(screenName.getText()));
+        twitterFavorites.refresh();
     }
 
-    private void setToListFor(ObservableList<Tweet> items) {
+    private void updateListViewItems() {
+        rateLimitUpdater.restart(twitterFavorites.getValue());
         list.getSelectionModel().clearSelection();
+
+        if (twitterFavorites.getValue().remaining() <= 0) {
+            Dialog.simple()
+                    .toErrorDialog()
+                    .message("お気に入りを取得できる上限になりました。API残数が回復するまでお待ちください。")// TODO: リソース化
+                    .build()
+                    .show();
+            return;
+        }
+
+        // TODO: フィルターのタスク化
+        ObservableList<Tweet> items = twitterFavorites.getValue().list();
 
         if (mediaOnly.isSelected()) {
             items = items.stream()
@@ -195,9 +209,24 @@ public final class TweetListView implements SceneController {
         return (UserData) list.getUserData();
     }
 
+    private static String removeAtmark(String s) {
+        return s.startsWith("@") ? s.substring(1) : s;
+    }
+
+    private static String addAtmark(String s) {
+        return s.startsWith("@") ? s : "@" + s;
+    }
+
     // ------------------------------------------
     // event handlers
     // ------------------------------------------
+
+    private void updateListViewItems(ObservableValue<? extends FavoriteListItems> obs, FavoriteListItems oVal, FavoriteListItems nVal) {
+        log.trace("favListService value changed. ({} -> {})", oVal, nVal);
+
+        if (nVal != null)
+            updateListViewItems();
+    }
 
     private void addOrRemoveAtmark(ObservableValue<? extends Boolean> osb, Boolean oVal, Boolean nVal) {
         log.trace("focus: {}, ({} -> {})", osb, oVal, nVal);
@@ -208,22 +237,11 @@ public final class TweetListView implements SceneController {
         screenName.setText(name);
     }
 
-    private static String removeAtmark(String s) {
-        return s.startsWith("@") ? s.substring(1) : s;
-    }
-
-    private static String addAtmark(String s) {
-        return s.startsWith("@") ? s : "@" + s;
-    }
-
     /**
      * リロードボタン押下.
      */
     public void reloadFavorites_onAction(ActionEvent event) {
-        log.trace("reloadFavorites_onMouseClicked: {}", event);
-        searchResult = null;
-        setupService();
-        searcher.restart();
+        refreshFavoriteList();
     }
 
     /**
@@ -275,99 +293,6 @@ public final class TweetListView implements SceneController {
      * メディアエンティティのあるツイートのみのチェックボックスON/OFF.
      */
     public void mediaOnly_onAction(ActionEvent event) {
-        setToListFor(searchResult.list());
-    }
-
-    /**
-     * 検索結果のリセット
-     */
-    private void resetSearchResult(FavoriteListItems result) {
-        if (searchResult != null) {
-            searchResult.update(result);
-        } else {
-            searchResult = result;
-        }
-
-        apiLimitUpdater.update();
-        setToListFor(result.list());
-    }
-
-    // ------------------------------------------
-
-    /**
-     * お気に入り取得サービス.
-     */
-    @RequiredArgsConstructor
-    final class FavoriteFinder extends ServiceBase<twitter4j.ResponseList<Status>, FavoriteFinder> {
-        TweetListView instance;
-
-        @NonNull
-        final Twitter twitter;
-
-        String screenName;
-
-        int count = 200;
-        Optional<Long> sinceId = Optional.empty();
-        Optional<Long> maxId = Optional.empty();
-
-        @Override
-        protected Task<twitter4j.ResponseList<Status>> newTask() {
-            return MyTask.of(() -> twitter.favorites().getFavorites(screenName, paging()))
-                    .ifSucceeded(r -> resetSearchResult(new FavoriteListItems(r)));
-        }
-
-        private Paging paging() {
-            Paging paging = new Paging().count(count);
-            sinceId.map(v -> v < 0 ? null : v).ifPresent(paging::setSinceId);
-            maxId.map(v -> v < 0 ? null : v).ifPresent(paging::setMaxId);
-            return paging;
-        }
-
-    }
-
-    /**
-     * APIリセット情報の更新サービス.
-     */
-    final class ApiLimitUpdater extends ServiceBase<Void, ApiLimitUpdater> {
-
-        void update() {
-
-            if (searchResult == null)
-                return;
-
-            ZonedDateTime reset = ZonedDateTime.ofInstant(Instant.ofEpochSecond(searchResult.resetTimeInSeconds()), ZoneId.systemDefault());
-            ZonedDateTime now = ZonedDateTime.now();
-            long secondsUntilReset = reset.toEpochSecond() - now.toEpochSecond();
-
-            if (secondsUntilReset > 0) {
-                apiLimit.setText(beforeResetMessage(secondsUntilReset, reset));
-                restart();
-                return;
-            }
-
-            apiLimit.setText(messageOfReseted(reset));
-        }
-
-        String beforeResetMessage(long secondsUntilReset, ZonedDateTime reset) {
-            return RB.labelOf("api_limit_format",
-                    searchResult.remaining(),
-                    searchResult.limit(),
-                    reset.toLocalTime(),
-                    secondsUntilReset);
-        }
-
-        String messageOfReseted(ZonedDateTime reset) {
-            return RB.labelOf("api_limit_format",
-                    searchResult.limit(),
-                    searchResult.limit(),
-                    reset.toLocalTime(),
-                    0);
-        }
-
-        @Override
-        protected Task<Void> newTask() {
-            return NoResultTask.of(() -> Thread.sleep(1000))
-                    .ifSucceeded(() -> update());
-        }
+        updateListViewItems();
     }
 }
