@@ -268,6 +268,10 @@ public final class TweetListView implements SceneController {
     public void startDownload_onAction(ActionEvent event) {
         log.trace("startDownload_onAction: {}", event);
 
+        // 未選択はなにもしない
+        if (list.getSelectionModel().getSelectedItems().isEmpty())
+            return;
+
         File toDir = dirChooser.getInitialDirectory();
 
         // TODO: リストのセルと重複コード
