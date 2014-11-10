@@ -82,7 +82,7 @@ final class RateLimitUpdater extends ServiceBase<Void, RateLimitUpdater> {
                     if (!update())
                         break;
 
-                    log.debug("wait 1000ms");
+                    log.trace("wait 1000ms");
                 } while (sleep(1000L));
             }
 
