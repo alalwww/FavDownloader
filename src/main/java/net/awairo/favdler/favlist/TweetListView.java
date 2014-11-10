@@ -187,7 +187,7 @@ public final class TweetListView implements SceneController {
         if (twitterFavorites.getValue().remaining() <= 0) {
             Dialog.simple()
                     .toErrorDialog()
-                    .message("お気に入りを取得できる上限になりました。API残数が回復するまでお待ちください。")// TODO: リソース化
+                    .message(RB.messageOf("rate_limit_exceeded"))
                     .build()
                     .show();
             return;
