@@ -109,7 +109,8 @@ final class FavoriteListService extends ServiceBase<FavoriteListItems, FavoriteL
      * 取得済みがなければ最新から最大200件取得.
      */
     void refresh() {
-        super.restart();
+        super.reset();
+        super.start();
     }
 
     /**
@@ -118,7 +119,7 @@ final class FavoriteListService extends ServiceBase<FavoriteListItems, FavoriteL
     void continueLoad() {
         state.set(FindType.CONTINUE);
 
-        super.restart();
+        refresh();
     }
 
     @Deprecated
