@@ -73,7 +73,7 @@
 				<Insets left="1.0" right="1.0" />
 			</padding>
 		</AnchorPane>
-		<AnchorPane id="listPane" fx:id="listPane" prefHeight="200.0">
+		<AnchorPane id="list-pane" fx:id="listPane" prefHeight="200.0">
 			<children>
 				<HBox prefHeight="18.0" prefWidth="498.0" spacing="1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 					<children>

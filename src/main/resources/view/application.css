@@ -112,6 +112,10 @@ Hyperlink:active {
  * scene: TweetListView
  **************************************/
 
+#list-pane .list-view {
+	-fx-background-color: #303030;
+}
+
 #reload-button {
 	-fx-border-image-source: none;
 	-fx-border-color: none;
