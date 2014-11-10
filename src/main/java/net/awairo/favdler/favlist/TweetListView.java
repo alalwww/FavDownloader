@@ -259,7 +259,7 @@ public final class TweetListView implements SceneController {
             downloadDirectoryPath.setText(selectedDir.getAbsolutePath());
         }
 
-        list.setUserData(dirChooser.getInitialDirectory());
+        userData().userHome(dirChooser.getInitialDirectory());
     }
 
     /**
