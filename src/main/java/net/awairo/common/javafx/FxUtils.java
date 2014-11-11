@@ -69,7 +69,7 @@ public final class FxUtils {
      *
      * @see #runLater(Runner)
      */
-    public static void runLater(ThrowableRunner runner) {
+    public static void silentRrunLater(ThrowableRunner runner) {
         runLater(runner.toRunner());
     }
 
@@ -99,7 +99,7 @@ public final class FxUtils {
      *
      * @see #runLater(Runner)
      */
-    public static void runOnApplicationThread(ThrowableRunner runnar) {
+    public static void sile5ntRunOnApplicationThread(ThrowableRunner runnar) {
         runOnApplicationThread(runnar.toRunner());
     }
 }
