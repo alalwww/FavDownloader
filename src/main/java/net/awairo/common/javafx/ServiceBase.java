@@ -38,9 +38,8 @@ public abstract class ServiceBase<R, S extends ServiceBase<R, S>> extends Servic
         implements WorkerStateEventHandlers.Service<R, S>, DialogFactory {
 
     private final boolean saveLastValue;
-    private Optional<R> lastValue = Optional.empty();
-
-    private Optional<String> name = Optional.empty();
+    private volatile Optional<R> lastValue = Optional.empty();
+    private volatile Optional<String> name = Optional.empty();
 
     @NonNull
     @Getter
@@ -122,6 +121,7 @@ public abstract class ServiceBase<R, S extends ServiceBase<R, S>> extends Servic
      * @return このインスタンス
      */
     public final S name(String taskName) {
+        FxUtils.checkFxApplicationThread();
         name = Optional.ofNullable(taskName);
         return instance();
     }

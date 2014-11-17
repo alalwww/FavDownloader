@@ -43,7 +43,7 @@ import net.awairo.common.function.Runner;
 public abstract class TaskBase<R, T extends TaskBase<R, T>> extends Task<R>
         implements WorkerStateEventHandlers.Task<R, T>, DialogFactory {
 
-    private Optional<String> name = Optional.empty();
+    private volatile Optional<String> name = Optional.empty();
 
     @NonNull
     @Getter
@@ -119,6 +119,7 @@ public abstract class TaskBase<R, T extends TaskBase<R, T>> extends Task<R>
      * @return このインスタンス
      */
     public final T name(String taskName) {
+        FxUtils.checkFxApplicationThread();
         name = Optional.ofNullable(taskName);
         return instance();
     }
