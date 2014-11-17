@@ -213,7 +213,7 @@ public abstract class TaskBase<R, T extends TaskBase<R, T>> extends Task<R>
      * @see Thread#sleep(long)
      */
     protected final boolean sleep(long millis) {
-        return sleep(millis, this::sleepCanceled);
+        return sleep(millis, this::defaultSleepCanceled);
     }
 
     /**
@@ -250,7 +250,7 @@ public abstract class TaskBase<R, T extends TaskBase<R, T>> extends Task<R>
      *
      * @param millis スリープ時間
      */
-    protected void sleepCanceled(long millis) {
+    protected void defaultSleepCanceled(long millis) {
         log.trace("{} sleepCanceled.", this);
     }
 }
