@@ -81,7 +81,15 @@ public abstract class TaskBase<R, T extends TaskBase<R, T>> extends Task<R>
         // ブレークポイントの設置に利用したり、例外の大元をトレースしたりするために定義
 
         try {
-            return _execute();
+
+            final R ret = _execute();
+
+            // interruption timing
+            if (sleep(0))
+                return ret;
+
+            throw new AppException("task_cancelled");
+
         } catch (AppException e) {
             // 処理済み(ログ出力済み)のはずなので基本的にログ処理はしない
             log.trace("AppException", e);
